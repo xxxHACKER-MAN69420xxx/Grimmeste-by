@@ -49,31 +49,50 @@
     const STORAGE_KEY = 'danmark_by_poll_voted';
 
     async function updateDisplay() {
-        const { data: towns } = await supabaseClient.from('votes').select('*').order('vote_count', { ascending: false }).limit(15);
-        const total = towns.reduce((acc, t) => acc + t.vote_count, 0);
-        
-        // Update Leaderboard
-        document.getElementById('top-city').innerText = towns[0] ? towns[0].option_name : "Ingen stemmer endnu";
+    // 1. Fetch ALL towns (alphabetically) for the Search Dropdown
+    const { data: allTowns } = await supabaseClient
+        .from('votes')
+        .select('option_name')
+        .order('option_name', { ascending: true });
 
-        // Update Dropdown & Results
-        const datalist = document.getElementById('cities');
-        const results = document.getElementById('results-list');
-        results.innerHTML = "<strong>Resultater:</strong>";
-        
-        towns.forEach(t => {
-            if (datalist.children.length < towns.length) {
-                const opt = document.createElement('option');
-                opt.value = t.option_name;
-                datalist.appendChild(opt);
-            }
-            
-            const pct = total > 0 ? ((t.vote_count / total) * 100).toFixed(1) : 0;
-            results.innerHTML += `
-                <div style="margin: 10px 0;">
-                    <div style="display:flex; justify-content:space-between;"><span>${t.option_name}</span><span>${pct}% (${t.vote_count})</span></div>
-                    <div class="result-bar"><div class="fill" style="width:${pct}%"></div></div>
-                </div>`;
-        });
+    // 2. Fetch TOP 20 towns for the Results Leaderboard
+    const { data: topTowns } = await supabaseClient
+        .from('votes')
+        .select('*')
+        .order('vote_count', { ascending: false })
+        .limit(20);
+
+    // 3. Calculate Total Votes (based on everything)
+    const { data: totalData } = await supabaseClient.from('votes').select('vote_count');
+    const total = totalData.reduce((acc, t) => acc + t.vote_count, 0);
+    
+    // Update Leader Name (The #1 spot)
+    document.getElementById('top-city').innerText = topTowns[0] ? topTowns[0].option_name : "Ingen stemmer";
+
+    // Update the Search Dropdown (Show EVERY town)
+    const datalist = document.getElementById('cities');
+    datalist.innerHTML = ''; // Clear it out
+    allTowns.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t.option_name;
+        datalist.appendChild(opt);
+    });
+
+    // Update the Visual Results (Show ONLY top 20)
+    const results = document.getElementById('results-list');
+    results.innerHTML = "<strong>Top 20 Byer:</strong>";
+    
+    topTowns.forEach(t => {
+        const pct = total > 0 ? ((t.vote_count / total) * 100).toFixed(1) : 0;
+        results.innerHTML += `
+            <div style="margin: 10px 0;">
+                <div style="display:flex; justify-content:space-between;">
+                    <span>${t.option_name}</span>
+                    <span>${pct}% (${t.vote_count})</span>
+                </div>
+                <div class="result-bar"><div class="fill" style="width:${pct}%"></div></div>
+            </div>`;
+    });
 
         // CHECK IF USER HAS ALREADY VOTED
         checkVoterStatus();
