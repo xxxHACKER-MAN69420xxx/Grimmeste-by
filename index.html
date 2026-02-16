@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Danmarks Bedste By</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --main: #e6192e; --bg: #fdfdfd; } /* Danish Flag Red */
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #333; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .card { background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); width: 100%; max-width: 450px; padding: 2rem; border-top: 6px solid var(--main); }
+        .leader { background: #fff5f5; border: 1px solid #ffccd0; padding: 15px; border-radius: 10px; margin-bottom: 25px; text-align: center; }
+        .leader h3 { margin: 0; font-size: 0.9rem; text-transform: uppercase; color: var(--main); }
+        .leader-name { font-size: 1.8rem; font-weight: 800; display: block; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+        .vote-btn { width: 100%; padding: 15px; background: var(--main); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 1.1rem; }
+        .vote-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(230,25,46,0.3); }
+        .result-bar { height: 8px; background: #eee; border-radius: 10px; margin-top: 5px; overflow: hidden; }
+        .fill { height: 100%; background: var(--main); width: 0%; transition: 1s ease-out; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="leader">
+            <h3>Nuværende Grimmeste by🏆</h3>
+            <span id="top-city" class="leader-name">Indlæser...</span>
+        </div>
+
+        <h2>Danmarks Grimmeste by?</h2>
+        
+        <label for="city-choice">Vælg din by:</label>
+        <input list="cities" id="city-choice" name="city-choice" placeholder="Søg efter by...">
+        <datalist id="cities">
+            </datalist>
+
+        <button class="vote-btn" onclick="castVote()">STEM NU</button>
+
+        <div id="results-list" style="margin-top: 30px; font-size: 0.9rem;">
+            </div>
+    </div>
+
+<script>
+    const SUPABASE_URL = 'https://wnbqukzvbeszcuvzjqwi.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_QUuLyzmY0RwmCwAO8MhmTA_Lseoj2Uk';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // UNIQUE KEY FOR YOUR POLL
+    const STORAGE_KEY = 'danmark_by_poll_voted';
+
+    async function updateDisplay() {
+        const { data: towns } = await supabaseClient.from('votes').select('*').order('vote_count', { ascending: false }).limit(15);
+        const total = towns.reduce((acc, t) => acc + t.vote_count, 0);
+        
+        // Update Leaderboard
+        document.getElementById('top-city').innerText = towns[0] ? towns[0].option_name : "Ingen stemmer endnu";
+
+        // Update Dropdown & Results
+        const datalist = document.getElementById('cities');
+        const results = document.getElementById('results-list');
+        results.innerHTML = "<strong>Resultater:</strong>";
+        
+        towns.forEach(t => {
+            if (datalist.children.length < towns.length) {
+                const opt = document.createElement('option');
+                opt.value = t.option_name;
+                datalist.appendChild(opt);
+            }
+            
+            const pct = total > 0 ? ((t.vote_count / total) * 100).toFixed(1) : 0;
+            results.innerHTML += `
+                <div style="margin: 10px 0;">
+                    <div style="display:flex; justify-content:space-between;"><span>${t.option_name}</span><span>${pct}% (${t.vote_count})</span></div>
+                    <div class="result-bar"><div class="fill" style="width:${pct}%"></div></div>
+                </div>`;
+        });
+
+        // CHECK IF USER HAS ALREADY VOTED
+        checkVoterStatus();
+    }
+
+    function checkVoterStatus() {
+        if (localStorage.getItem(STORAGE_KEY)) {
+            const btn = document.querySelector('.vote-btn');
+            btn.disabled = true;
+            btn.innerText = "DU HAR STEMT ✓";
+            btn.style.background = "#ccc";
+            btn.style.cursor = "not-allowed";
+        }
+    }
+
+    async function castVote() {
+        // Double check lock before sending to database
+        if (localStorage.getItem(STORAGE_KEY)) return;
+
+        const cityName = document.getElementById('city-choice').value;
+        const { data } = await supabaseClient.from('votes').select('vote_count').eq('option_name', cityName).single();
+        
+        if (data) {
+            await supabaseClient.from('votes').update({ vote_count: data.vote_count + 1 }).eq('option_name', cityName);
+            
+            // SET THE LOCK
+            localStorage.setItem(STORAGE_KEY, 'true');
+            
+            alert("Tak for din stemme!");
+            updateDisplay();
+        } else {
+            alert("Vælg venligst en gyldig by fra listen.");
+        }
+    }
+
+    updateDisplay();
+</script>
+</body>
+</html>
