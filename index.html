@@ -3,21 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danmarks Bedste By</title>
+    <title>Danmarks Grimmeste by</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root { --main: #e6192e; --bg: #fdfdfd; } /* Danish Flag Red */
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #333; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .card { background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); width: 100%; max-width: 450px; padding: 2rem; border-top: 6px solid var(--main); }
-        .leader { background: #fff5f5; border: 1px solid #ffccd0; padding: 15px; border-radius: 10px; margin-bottom: 25px; text-align: center; }
-        .leader h3 { margin: 0; font-size: 0.9rem; text-transform: uppercase; color: var(--main); }
-        .leader-name { font-size: 1.8rem; font-weight: 800; display: block; }
-        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
-        .vote-btn { width: 100%; padding: 15px; background: var(--main); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 1.1rem; }
-        .vote-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(230,25,46,0.3); }
-        .result-bar { height: 8px; background: #eee; border-radius: 10px; margin-top: 5px; overflow: hidden; }
-        .fill { height: 100%; background: var(--main); width: 0%; transition: 1s ease-out; }
-    </style>
+	<style>
+		:root { 
+			--main: #e6192e; 
+			--bg: #fdfdfd; 
+		}
+
+		body { 
+			/* 1. THE IMAGE SETTINGS */
+			background-image: url('https://smooth-storage.aptoma.no/users/mhmdk/images/144683288.webp?t%5Bstrip%5D=true&t%5Bcrop%5D%5Bx%5D=0&t%5Bcrop%5D%5By%5D=0&t%5Bcrop%5D%5Bwidth%5D=5472&t%5Bcrop%5D%5Bheight%5D=3648&t%5Bquality%5D=80&t%5Bresize%5D%5Bwidth%5D=930&t%5Bresize%5D%5Bheight%5D=620&accessToken=ae71e9076c8f9ab0e93285070fb12f58fbf14d99e9c4413e37f8962fd732e0ec');
+			background-size: cover;
+			background-repeat: no-repeat;
+			background-position: center center;
+			background-attachment: fixed;
+
+			/* 2. THE REST OF YOUR BODY STYLES */
+			font-family: 'Inter', sans-serif; 
+			color: #333; 
+			display: flex; 
+			flex-direction: column; 
+			align-items: center; 
+			padding: 20px; 
+			margin: 0; /* Added to remove white borders */
+			min-height: 100vh; /* Ensures background covers full height */
+		}
+
+		/* Rest of your CSS remains the same */
+		.card { background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); width: 100%; max-width: 450px; padding: 2rem; border-top: 6px solid var(--main); }
+		.leader { background: #fff5f5; border: 1px solid #ffccd0; padding: 15px; border-radius: 10px; margin-bottom: 25px; text-align: center; }
+		.leader h3 { margin: 0; font-size: 0.9rem; text-transform: uppercase; color: var(--main); }
+		.leader-name { font-size: 1.8rem; font-weight: 800; display: block; }
+		input, select { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+		.vote-btn { width: 100%; padding: 15px; background: var(--main); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 1.1rem; }
+		.vote-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(230,25,46,0.3); }
+		.result-bar { height: 8px; background: #eee; border-radius: 10px; margin-top: 5px; overflow: hidden; }
+		.fill { height: 100%; background: var(--main); width: 0%; transition: 1s ease-out; }
+	</style>
 </head>
 <body>
 
